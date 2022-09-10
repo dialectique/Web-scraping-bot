@@ -278,7 +278,7 @@ class Website_blog:
         # and all the articles' urls
         titles_soup = soup.find_all("h3", "card__title")
         df_titles = pd.DataFrame(
-            {'titles': [title.a["title"] for title in titles_soup]}
+            {'title': [title.a["title"] for title in titles_soup]}
             )
         df_urls = pd.DataFrame(
             {'url': [title.a["href"] for title in titles_soup]}
@@ -372,7 +372,9 @@ def main():
     print("The library scrape_one_page.py has been ran directly.")
     wb = Website_blog()
     df = wb.scrap_all_blog_articles()
-    print(df)
+    file_name = f"all_articles.csv"
+    df.to_csv(file_name, mode='w', index=None, header=True)
+    print("fini")
 
 
 if __name__ == "__main__":
