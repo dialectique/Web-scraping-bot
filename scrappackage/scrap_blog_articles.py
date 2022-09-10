@@ -1,7 +1,8 @@
 import re
 import os
 import requests
-
+import random
+import time
 import pandas as pd
 
 from bs4 import BeautifulSoup
@@ -14,6 +15,19 @@ class Website_blog:
     A class for scrap a particular website's blog articles
     The environment variable BLOG_URL contains the website URL
     """
+
+    def sleep_random_time(self):
+        """
+        sleep method to avoid the website server to be overloaded
+        with too many requests in a short time
+        :return: None
+        :rtype: NoneType
+        """
+        # Program execution will be stopped for a period of time
+        # ranging from 5 to 16 seconds.
+        wait_time = random.randint(1, 5)
+        time.sleep(wait_time)
+
 
     def get_website_blog_url(self):
         """
@@ -34,6 +48,34 @@ class Website_blog:
         return text.split("=")[1].strip()
 
 
+    def convert_date(self, date: str = "") -> str:
+        """
+        Convert a date to "YYYY-MM-DD" format
+        Example: "June 17th, 2020" returns "2020-06-17"
+        :param date: date with "month DDth, YYYY" format
+        :type date: str
+        :raise TypeError: if date is not a string with the required format
+        :return: date with "YYYY-MM-DD" format
+        :rtype: str
+        """
+        pattern = re.compile(
+            r"^(January|February|March|April|May|June|July|August|September|October|November|December)"
+            r" ([1-9]|[12][0-9]|3[01])(st|nd|rd|th), [0-9]{4}$"
+            )
+        if re.search(pattern, date):
+            date_list = date.split()
+            date_list[1] = date_list[1][:-3]
+            try:
+                return datetime.strptime(" ".join(date_list), "%B %d %Y") \
+                    .strftime("%Y-%m-%d")
+            except Exception as e:
+                raise e
+        raise ValueError(
+            "Date doesn't have the required format. For example:\n"
+            "February 1st, 2017'  'May 2nd, 1997'  'June 3rd, 2008'  'March 4th, 2015'"
+            )
+
+
     def scrap_one_article_page(self, url):
         """
         Scrap data from one article's page of the website's blog:
@@ -49,25 +91,40 @@ class Website_blog:
         data = requests.get(url)
         soup = BeautifulSoup(data.text, "html.parser")
 
+        # articles' page can have different layout
+        # so let's use try/except to avoid interupting the script
+
         #article's date
-        date = soup.find("div", "hero__meta") \
-                .span.string.split("|")[0].strip()
+        try:
+            date = soup.find("div", "hero__meta") \
+                    .span.string.split("|")[0].strip()
+        except:
+            date=""
 
         #article's author
-        author = soup.find("div", "hero__meta") \
-                .span.string.split("|")[1].strip()
+        try:
+            author = soup.find("div", "hero__meta") \
+                    .span.string.split("|")[1].strip()
+        except:
+            author=""
 
         # list of article's tags
-        tags = ", ".join(
-            [tag.a.string.strip() for tag in soup.find_all("li", "tags__tag")]
-            )
+        try:
+            tags = ", ".join(
+                [tag.a.string.strip() for tag in soup.find_all("li", "tags__tag")]
+                )
+        except:
+            tags = ""
 
         # list of article's' leads and text
-        text = " ".join(
-                [p.get_text() for p in soup \
-                    .find("div", "entry-content__content") \
-                    .find_all(["h2", "h3", "p"])]
-                )
+        try:
+            text = " ".join(
+                    [p.get_text().strip().replace("\n", " ") for p in soup \
+                        .find("div", "entry-content__content") \
+                        .find_all(["h2", "h3", "p"])]
+                    )
+        except:
+            text = ""
 
         return {
             'date': date,
@@ -80,9 +137,10 @@ class Website_blog:
     def scrap_blog_page_one_only(self) -> pd.core.frame.DataFrame:
         """
         Scrap the first page only of the website's blog.
-        Page one has a different layout than other pagers.
+        Page one has a different layout than other pages.
         For other pages, see the method: self.scrap_blog_one_page_for_page_two_and_more()
-        :return: a dict with articles name | url | dates | categories
+        :return: a dataframe with articles' url | title | date | author |
+            category | tags | text
         :rtype: pandas.core.frame.DataFrame
         """
 
@@ -90,6 +148,9 @@ class Website_blog:
         page_url = f"{self.get_website_blog_url()}1/"
         data = requests.get(page_url)
         soup = BeautifulSoup(data.text, "html.parser")
+
+        # display the page URL
+        print(f"Scrap articles from URL page: {page_url}")
 
         # top article title
         top_title = soup.find("h1", "hero__title").a.string.strip()
@@ -161,6 +222,12 @@ class Website_blog:
             author_for_each_article.append(article_data['author'])
             tags_for_each_article.append(article_data['tags'])
             text_for_each_article.append(article_data['text'])
+            print("*", end="", flush=True) # simple progression bar
+            self.sleep_random_time()
+
+        # display the number of articles scrapped right after
+        # the simple progression bar
+        print(f" {len(df_urls)} articles scrapped on this page.\n")
 
         # create pandas dataframe for articles' date,
         # articles' author, articles' tags, and articles' text
@@ -171,7 +238,7 @@ class Website_blog:
 
         # concatenate the previous df and return the final df
         return pd.concat(
-            [df_titles, df_dates, df_authors, df_categories,
+            [df_urls, df_titles, df_dates, df_authors, df_categories,
              df_tags, df_texts], axis=1
             )
 
@@ -184,7 +251,8 @@ class Website_blog:
         :param page: page number, minimum value: 2
         :type date: int
         :raise ConnectionError: if page not found
-        :return: a dataframe with articles name | url | dates | categories
+        :return: a dataframe with articles' url | title | date | author |
+            category | tags | text
         :rtype: pandas.core.frame.DataFrame
         """
 
@@ -202,6 +270,9 @@ class Website_blog:
         soup = BeautifulSoup(data.text, "html.parser")
         if soup.h1.string == 'Page not found':
             raise ConnectionError('Page not found')
+
+        # display the page URL
+        print(f"Scrap articles from URL page: {page_url}")
 
         # create pandas dataframes for all the titles
         # and all the articles' urls
@@ -239,6 +310,12 @@ class Website_blog:
             author_for_each_article.append(article_data['author'])
             tags_for_each_article.append(article_data['tags'])
             text_for_each_article.append(article_data['text'])
+            print("*", end="", flush=True) # simple progression bar
+            self.sleep_random_time()
+
+        # display the number of articles scrapped right after
+        # the simple progression bar
+        print(f" {len(df_urls)} articles scrapped on this page.\n")
 
         # create pandas dataframe for articles' date,
         # articles' author, articles' tags, and articles' text
@@ -249,37 +326,39 @@ class Website_blog:
 
         # concatenate the previous df and return the final df
         return pd.concat(
-            [df_titles, df_dates, df_authors, df_categories,
+            [df_urls, df_titles, df_dates, df_authors, df_categories,
              df_tags, df_texts], axis=1
             )
 
 
-    def convert_date(self, date: str = "") -> str:
+    def scrap_all_blog_articles(self):
         """
-        Convert a date to "YYYY-MM-DD" format
-        Example: "June 17th, 2020" returns "2020-06-17"
-        :param date: date with "month DDth, YYYY" format
-        :type date: str
-        :raise TypeError: if date is not a string with the required format
-        :return: date with "YYYY-MM-DD" format
-        :rtype: str
+        Scrap all the pages of the website's blog
+        :return: a dataframe with articles' url | title | date | author |
+            category | tags | text
+        :rtype: pandas.core.frame.DataFrame
         """
-        pattern = re.compile(
-            r"^(January|February|March|April|May|June|July|August|September|October|November|December)"
-            r" ([1-9]|[12][0-9]|3[01])(st|nd|rd|th), [0-9]{4}$"
-            )
-        if re.search(pattern, date):
-            date_list = date.split()
-            date_list[1] = date_list[1][:-3]
+
+        # Scrap first articles' page
+        df_all_articles = self.scrap_blog_page_one_only()
+
+        # Scrap the following articles' pages and concat the df
+        # until the method scrap_blog_one_page_for_page_two_and_more()
+        # returns an empty df or raise an exception.
+        page = 2
+        while True:
             try:
-                return datetime.strptime(" ".join(date_list), "%B %d %Y") \
-                    .strftime("%Y-%m-%d")
-            except Exception as e:
-                raise e
-        raise ValueError(
-            "Date doesn't have the required format. For example:\n"
-            "February 1st, 2017'  'May 2nd, 1997'  'June 3rd, 2008'  'March 4th, 2015'"
-            )
+                df_page = self.scrap_blog_one_page_for_page_two_and_more(page)
+            except:
+                print(f"Error on page {page}. Please check it.")
+                break
+            if len(df_page) == 0:
+                break
+            df_all_articles = pd.concat([df_all_articles, df_page])
+            if page == 3:
+                break
+            page += 1
+        return df_all_articles
 
 
     def ping(self):
@@ -292,7 +371,9 @@ class Website_blog:
 def main():
     print("The library scrape_one_page.py has been ran directly.")
     wb = Website_blog()
-    print(wb.scrap_blog_one_page_for_page_two_and_more(2))
+    df = wb.scrap_all_blog_articles()
+    print(df)
+
 
 if __name__ == "__main__":
     main()
