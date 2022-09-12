@@ -26,7 +26,7 @@ class Website_blog:
         """
         # Program execution will be stopped for a period of time
         # ranging from 5 to 16 seconds.
-        wait_time = random.randint(5, 25)
+        wait_time = random.randint(1, 3)
         time.sleep(wait_time)
 
 
@@ -144,6 +144,7 @@ class Website_blog:
     def scrap_blog_page_one_only(self) -> pd.core.frame.DataFrame:
         """
         Scrap the first page only of the website's blog.
+        This page contains informations and links to several articles.
         Page one has a different layout than other pages.
         For other pages, see the method: self.scrap_blog_one_page_for_page_two_and_more()
         :return: a dataframe with articles' url | title | date | author |
@@ -253,6 +254,7 @@ class Website_blog:
     def scrap_blog_one_page_for_page_two_and_more(self, page: int = 2) -> pd.core.frame.DataFrame:
         """
         Scrap 1 page of the website's blog, for page two and more.
+        This page contains informations and links to several articles.
         Page one has a different layout than other pagers.
         For page one, see the method: self.scrap_blog_page_one_only()
         :param page: page number, minimum value: 2
@@ -347,12 +349,12 @@ class Website_blog:
         """
 
         # Scrap first articles' page.
-        df_all_articles = self.scrap_blog_page_one_only()
-
+        # df_all_articles = self.scrap_blog_page_one_only()
+        df_all_articles = pd.DataFrame()
         # Scrap the following articles' pages and concat the df
         # until the method scrap_blog_one_page_for_page_two_and_more()
         # returns an empty df or raise an exception.
-        page = 2
+        page = 61
         while True:
             try:
                 df_page = self.scrap_blog_one_page_for_page_two_and_more(page)
@@ -365,14 +367,15 @@ class Website_blog:
             if page >= 75:
                 break
             page += 1
+
         return df_all_articles
 
 
     def ping(self):
         """
-        You call ping I print pong.
+        You call ping I return pong.
         """
-        print("pong")
+        return "pong"
 
 
 def main():
