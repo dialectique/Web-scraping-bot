@@ -74,15 +74,15 @@ def test_scrap_blog_one_page_for_page_two_and_more():
     assert len(df) == 24
     assert len(df.columns) == 7
 
-"""
+
 def test_scrap_all_blog_articles():
     df = wb.scrap_all_blog_articles()
     file_name = f"all_articles.csv"
     df.to_csv(file_name, mode='w', index=None, header=True)
-"""
+
 
 def test_ping():
-    assert wb.ping() == None
+    assert wb.ping() == "pong"
 
 def test_main():
     assert main() == None
