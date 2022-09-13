@@ -349,12 +349,12 @@ class Website_blog:
         """
 
         # Scrap first articles' page.
-        # df_all_articles = self.scrap_blog_page_one_only()
-        df_all_articles = pd.DataFrame()
+        df_all_articles = self.scrap_blog_page_one_only()
+
         # Scrap the following articles' pages and concat the df
         # until the method scrap_blog_one_page_for_page_two_and_more()
         # returns an empty df or raise an exception.
-        page = 61
+        page = 2
         while True:
             try:
                 df_page = self.scrap_blog_one_page_for_page_two_and_more(page)
@@ -364,8 +364,6 @@ class Website_blog:
             if len(df_page) == 0:
                 break
             df_all_articles = pd.concat([df_all_articles, df_page])
-            if page >= 75:
-                break
             page += 1
 
         return df_all_articles
