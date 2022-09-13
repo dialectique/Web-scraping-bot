@@ -27,7 +27,7 @@ all_articles_df.to_csv("all_articles.csv", mode='w', index=None, header=True)
 - Check out Makefile for more usefull command lines
 
 ## Tests
-- run the tests with:
+- Run the tests with:
 ```
 make tests
 ```
