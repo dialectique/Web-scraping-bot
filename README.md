@@ -18,6 +18,9 @@ all_articles_df = wb.scrap_all_blog_articles()
 
 # save the data in all_articles.csv file.
 all_articles_df.to_csv("all_articles.csv", mode='w', index=None, header=True)
+
+# update all_articles.csv file with recent articles (blog's first page).
+wb.update_csv_file_with_blog_first_page()
 ```
 
 ## Package installation
@@ -31,3 +34,6 @@ all_articles_df.to_csv("all_articles.csv", mode='w', index=None, header=True)
 ```
 make tests
 ```
+
+## Simple data exploration
+- check the notebook simple_data_exploration.ipynb (ongoing)

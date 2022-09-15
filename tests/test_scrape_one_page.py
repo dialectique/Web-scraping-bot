@@ -3,6 +3,7 @@ tests scrape_one_page.py
 """
 import pytest
 import os
+import pandas as pd
 from scrappackage.scrap_blog_articles import Website_blog, main
 
 
@@ -13,7 +14,7 @@ def test_sleep_random_time():
 
 
 def test_get_website_blog_url():
-    # Get and return the absolute path of the root directory.
+    # Get the absolute path of the root directory.
     root_abs_path = os.path.dirname(
     os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
     )
@@ -77,8 +78,23 @@ def test_scrap_blog_one_page_for_page_two_and_more():
 
 def test_scrap_all_blog_articles():
     df = wb.scrap_all_blog_articles()
-    file_name = f"all_articles.csv"
-    df.to_csv(file_name, mode='w', index=None, header=True)
+    assert len(df) >= 1600
+    assert len(df.columns) == 7
+
+
+def test_update_csv_file_with_blog_first_page():
+    # Get the absolute path of the root directory.
+    root_abs_path = os.path.dirname(
+    os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
+    )
+    # all_articles.csv absolute path
+    all_articles_csv_file_path = os.path.join(root_abs_path, "scrappackage", "all_articles.csv")
+    assert wb.update_csv_file_with_blog_first_page() == None
+    assert os.path.exists(all_articles_csv_file_path) == True
+
+    df_csv_file = pd.read_csv(all_articles_csv_file_path)
+    assert len(df_csv_file) >= 1600
+    assert len(df_csv_file.columns) == 7
 
 
 def test_ping():

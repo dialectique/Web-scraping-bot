@@ -27,3 +27,7 @@ Contains the '''Website_blog''' class, which have the following methods:
 
 ### scrap_all_blog_articles()
   - Scrap all the pages of the website's blog, return a Pandas DataFrame
+
+### update_csv_file_with_blog_first_page()
+  - To avoid scrap all the website's blog articles, update the all_articles.csv file with the website's blog articles from the first page only.
+  - This update could be done every two week as there were no more than 25 article publications per month in the past.

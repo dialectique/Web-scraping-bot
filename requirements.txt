@@ -11,9 +11,13 @@ flake8==5.0.4
 pytest==7.1.2
 yapf==0.32.0
 
-# data processing
-pandas==1.4.4
-
-# for web scraping
+# web scraping
 requests==2.28.1
 bs4==0.0.1
+
+# data science
+jupyter==1.0.0
+numpy==1.23.2
+pandas==1.4.4
+jupyter==1.0.0
+seaborn==0.12.0

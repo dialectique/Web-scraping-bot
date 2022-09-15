@@ -26,7 +26,7 @@ class Website_blog:
         """
         # Program execution will be stopped for a period of time
         # ranging from 5 to 16 seconds.
-        wait_time = random.randint(1, 3)
+        wait_time = random.randint(5, 15)
         time.sleep(wait_time)
 
 
@@ -65,6 +65,8 @@ class Website_blog:
         :return: date with "YYYY-MM-DD" format
         :rtype: str
         """
+        if date == "":
+            return ""
         pattern = re.compile(
             r"^(January|February|March|April|May|June|July|August|September|October|November|December)"
             r" ([1-9]|[12][0-9]|3[01])(st|nd|rd|th), [0-9]{4}$"
@@ -105,6 +107,7 @@ class Website_blog:
         try:
             date = soup.find("div", "hero__meta") \
                     .span.string.split("|")[0].strip()
+            date = self.convert_date(date)
         except:
             date=""
 
@@ -146,6 +149,7 @@ class Website_blog:
         Scrap the first page only of the website's blog.
         This page contains informations and links to several articles.
         Page one has a different layout than other pages.
+        It contains 17 articles description.
         For other pages, see the method: self.scrap_blog_one_page_for_page_two_and_more()
         :return: a dataframe with articles' url | title | date | author |
             category | tags | text
@@ -157,8 +161,8 @@ class Website_blog:
         data = requests.get(page_url)
         soup = BeautifulSoup(data.text, "html.parser")
 
-        # Display the page URL
-        print(f"Scrap articles from URL page: {page_url}")
+        # Display the page number
+        print(f"Scrap articles from the website's page 1")
 
         # Top article title
         top_title = soup.find("h1", "hero__title").a.string.strip()
@@ -254,7 +258,7 @@ class Website_blog:
     def scrap_blog_one_page_for_page_two_and_more(self, page: int = 2) -> pd.core.frame.DataFrame:
         """
         Scrap 1 page of the website's blog, for page two and more.
-        This page contains informations and links to several articles.
+        This page contains informations and links to 24 articles or less.
         Page one has a different layout than other pagers.
         For page one, see the method: self.scrap_blog_page_one_only()
         :param page: page number, minimum value: 2
@@ -280,8 +284,8 @@ class Website_blog:
         if soup.h1.string == 'Page not found':
             raise ConnectionError('Page not found')
 
-        # Display the page URL
-        print(f"Scrap articles from URL page: {page_url}")
+        # Display the page number
+        print(f"Scrap articles from website's blog page {page}")
 
         # Create pandas dataframes for all the titles
         # and all the articles' urls.
@@ -369,6 +373,51 @@ class Website_blog:
         return df_all_articles
 
 
+    def update_csv_file_with_blog_first_page(self):
+        """
+        To avoid scrap all the website's blog articles, update
+        the all_articles.csv file with the website's blog articles from the
+        first page only. This update could be done every two week as there were
+        no more than 25 article publications per month in the past.
+        :return: None
+        :rtype: None
+        """
+        # Get the absolute path of the root directory
+        root_abs_path = os.path.dirname(
+        os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
+        )
+
+        # get all_articles.csv file absolute path
+        all_articles_csv_absolut_path = \
+            os.path.join(root_abs_path, "scrappackage", "all_articles.csv")
+
+        # read the all_articles.csv file
+        df_csv_file = pd.read_csv(all_articles_csv_absolut_path)
+
+        # get the 17 first articles' informations from the website's blog 1st page
+        website_17_first_articles = self.scrap_blog_page_one_only()
+
+        # for each article from website_17_first_articles, check if the
+        # associated url is in the df_csv_file and add the new articles
+        # to the df_csv_file
+        csv_file_url_set = set(df_csv_file["url"])
+        website_17_first_articles_url = website_17_first_articles['url']
+        for url in website_17_first_articles_url:
+            if url not in csv_file_url_set:
+                article_to_add = \
+                    website_17_first_articles[website_17_first_articles.url == url]
+                df_csv_file = pd.concat([article_to_add, df_csv_file])
+
+        # sort articles by descending date
+        df_csv_file.sort_values(by='date', ascending = False, inplace=True)
+
+        # save the updated df in all_articles.csv file
+        df_csv_file.to_csv(all_articles_csv_absolut_path, \
+            mode='w', index=None, header=True)
+
+        print("'all_articles.csv' is now up to date.")
+
+
     def ping(self):
         """
         You call ping I return pong.
@@ -378,7 +427,8 @@ class Website_blog:
 
 def main():
     print("The library scrape_one_page.py has been ran directly.")
-
+    wb = Website_blog()
+    print(wb.update_csv_file_with_blog_first_page())
 
 if __name__ == "__main__":
     main()
