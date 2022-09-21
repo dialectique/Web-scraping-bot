@@ -26,7 +26,7 @@ class Website_blog:
         """
         # Program execution will be stopped for a period of time
         # ranging from 5 to 16 seconds.
-        wait_time = random.randint(5, 15)
+        wait_time = random.randint(1, 3)
         time.sleep(wait_time)
 
 
@@ -397,16 +397,11 @@ class Website_blog:
         # get the 17 first articles' informations from the website's blog 1st page
         website_17_first_articles = self.scrap_blog_page_one_only()
 
-        # for each article from website_17_first_articles, check if the
-        # associated url is in the df_csv_file and add the new articles
-        # to the df_csv_file
-        csv_file_url_set = set(df_csv_file["url"])
-        website_17_first_articles_url = website_17_first_articles['url']
-        for url in website_17_first_articles_url:
-            if url not in csv_file_url_set:
-                article_to_add = \
-                    website_17_first_articles[website_17_first_articles.url == url]
-                df_csv_file = pd.concat([article_to_add, df_csv_file])
+        # concatenate the 1st page article and the df_csv_file
+        df_csv_file = pd.concat([website_17_first_articles, df_csv_file])
+
+        # remove duplicates rows
+        df_csv_file.drop_duplicates(inplace=True)
 
         # sort articles by descending date
         df_csv_file.sort_values(by='date', ascending = False, inplace=True)
