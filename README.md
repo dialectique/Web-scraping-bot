@@ -35,5 +35,5 @@ wb.update_csv_file_with_blog_first_page()
 make tests
 ```
 
-## Simple data exploration
-- check the notebook simple_data_exploration.ipynb (ongoing)
+## Data exploration
+- check the notebook data_exploration.ipynb (ongoing)
