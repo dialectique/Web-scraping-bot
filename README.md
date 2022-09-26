@@ -1,8 +1,9 @@
-# Web scraping bot with Python and BeatifulSoup Library.
+# Web scraping bot and data analysis with Python and BeatifulSoup Library.
 - Scrap blog articles and related data about lifestyle and things to do in Tokyo from a specific website.
 - To prevent a malicious use of this Python app, an environement variable is used to manage the website URL, which doesn't appear on this git-hub repository.
 - This web scraping bot may only works with that specific website URL.
-- Collected data will be used in a further project
+- Data exploration and analysis of the dataset from the web scrapping bot
+- Collected data will may be also used in a further project
 
 ## Usage
 ```
