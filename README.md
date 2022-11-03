@@ -1,4 +1,4 @@
-# Web scraping bot and data analysis with Python and BeatifulSoup Library.
+# Web scraping bot and data analysis (Python, BeautifulSoup and Pandas)
 - Scrap blog articles and related data about lifestyle and things to do in Tokyo from a specific website.
 - To prevent a malicious use of this Python app, an environement variable is used to manage the website URL, which doesn't appear on this git-hub repository.
 - This web scraping bot may only works with that specific website URL.
